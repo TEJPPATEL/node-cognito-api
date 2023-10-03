@@ -1,0 +1,52 @@
+AWS Cognito Authetication and Authorization
+
+	Cognito User Pool - is An Active directory used for Authetication and Authorization 
+
+Authetication--> Validate user identity (username and password)
+Authorization--> Allow Accessing resource for Authenticated User
+
+
+Below Are Steps for Cognito Authetication And Authorization
+
+1. Register User in User Pool
+	using .signup method to you can register user & send verification code 
+		
+2. Verify Code
+	using .confirmRegistration method to confirm registration using username and code
+	
+3. Login
+	using .signin method to Authenticate user credentials (validate username and password )
+	Then It Provide AccessToken And Refresh Token
+	
+	Using Access Token User Can able to Access Resources
+	
+
+
+4. Before Accessing Any Other Resources Require To Validate Access Token Provided By User
+	1.Needs to create Middleware and it is called for All Authorized Request(Except Login ,SignUp,Verify Code)
+	In Order Validate Cognito Access Token Needs to understand few terimnology
+		Things to validate
+			1.token is expired or not
+			2.Needs to validate Token Keys id (By Comparing Signature)
+	
+		1.Cognito Provide link using that you get PUBLIC KEYS using that verify JWT token weather is tempared or not(Changed or not)
+		This is keys is called jwks (Json Web Keys Set)
+		https://cognito-idp.us-east-1.amazonaws.com/us-east-1_bNjGkTk0i/.well-known/jwks.json (Using PoolId and Region) You can get public keys
+		
+		2.Need to Decoded Access Token for requested User who is trying to access resource
+			decodedToken = jwt.decode(AccessToken) 
+			//In order to decode access token required jsonwebtoken package in nodejs for decode jwt token
+			after decoding access token you can get header and inside header you can have kid field that needs to match with public keys provided by cogntio json urls
+			
+			
+			now for comparing and verify token you needs convert jwks to pem 
+			and then use .verify method to validate that weather token is valid or not
+			
+			const pem = jwkToPem(JSON.parse(data));
+			const auth = jwt.verify(token, pem, { algorithms: ['RS256'] });
+
+		
+		
+
+	After this all above steps are successed for requested user then allow them to access it to resource
+	
